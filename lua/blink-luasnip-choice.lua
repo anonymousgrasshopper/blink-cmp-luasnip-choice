@@ -1,0 +1,71 @@
+local defaults = {}
+
+--- @module 'blink.cmp'
+--- @class blink.cmp.Source
+local source = {}
+
+function source.new(opts)
+	-- vim.validate("your-source.opts.some_option", opts.some_option, { "string" })
+	-- vim.validate("your-source.opts.optional_option", opts.optional_option, { "string" }, true)
+
+	opts = vim.tbl_extend("keep", opts or {}, defaults)
+	local self = setmetatable({}, { __index = source })
+	self.opts = opts
+	return self
+end
+
+function source:enabled()
+	-- return true
+	return require("luasnip").choice_active()
+end
+
+function source:get_completions(_, callback)
+	--- @type lsp.CompletionItem[]
+	local items = {}
+
+	local choice_docstrings = require("luasnip").get_current_choices()
+	print(choice_docstrings)
+
+	for i, choice_docstring in ipairs(choice_docstrings) do
+		--- @type lsp.CompletionItem
+		local item = {
+			label = choice_docstring,
+			kind = require("blink.cmp.types").CompletionItemKind.Snippet,
+			index = i,
+			textEdit = {
+				newText = "",
+				range = {
+					-- 0-indexed line and character, end-exclusive
+					start = { line = 0, character = 0 },
+					["end"] = { line = 0, character = 0 },
+				},
+			},
+		}
+
+		table.insert(items, item)
+	end
+
+	callback({ items = items, is_incomplete_backward = false, is_incomplete_forward = true })
+
+	return function()
+		-- nothing to cancel
+	end
+end
+
+function source:execute(ctx, item, callback, default_implementation)
+	require("luasnip").set_choice(item.index)
+	callback(item)
+end
+
+vim.api.nvim_create_autocmd("User", {
+	pattern = "LuasnipChoiceNodeEnter",
+	callback = function()
+		vim.schedule(function()
+			require("blink-cmp").show({
+				providers = { "choice" },
+			})
+		end)
+	end,
+})
+
+return source

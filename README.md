@@ -9,30 +9,14 @@ https://user-images.githubusercontent.com/25270060/202857316-f6d13c97-7deb-4bfb-
 ## Installation via [Packer](https://github.com/wbthomason/packer.nvim)
 
 ```lua
-use { 'L3MON4D3/LuaSnip' }
-use {
-  'hrsh7th/nvim-cmp',
-  config = function ()
-    require'cmp'.setup {
-      snippet = {
-        expand = function(args)
-          require'luasnip'.lsp_expand(args.body)
-        end
-      },
-
-      sources = {
-        { name = 'luasnip_choice' },
-        -- more sources
-      },
-    }
-  end
-}
-use {
-  'doxnit/cmp-luasnip-choice',
-  config = function()
-    require('cmp_luasnip_choice').setup({
-        auto_open = true, -- Automatically open nvim-cmp on choice node (default: true)
-    });
-  end,
-}
+vim.api.nvim_create_autocmd("User", {
+    pattern = "LuasnipChoiceNodeEnter",
+    callback = function()
+        vim.schedule(function()
+            require("blink-cmp").show {
+                providers = { "luasnip-choice" },
+            }
+        end)
+    end,
+})
 ```
