@@ -27,7 +27,7 @@ require 'blink.cmp' .setup {
         providers = {
             choice = {
                 name = 'LuaSnip Choice Nodes',
-                module = 'blink-luasnip-choice'
+                module = 'blink-cmp-luasnip-choice'
                 opts = {},
             },
         }
