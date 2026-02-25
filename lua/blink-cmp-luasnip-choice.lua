@@ -11,6 +11,17 @@ function source.new(opts)
 	opts = vim.tbl_extend("keep", opts or {}, defaults)
 	local self = setmetatable({}, { __index = source })
 	self.opts = opts
+
+	vim.api.nvim_create_autocmd("User", {
+		pattern = "LuasnipChoiceNodeEnter",
+		callback = function()
+			vim.schedule(function()
+				require("blink-cmp").show({
+					providers = { self.opts.name or "choice" },
+				})
+			end)
+		end,
+	})
 	return self
 end
 
@@ -51,16 +62,5 @@ function source:execute(ctx, item, callback, default_implementation)
 	require("luasnip").set_choice(item.index)
 	callback(item)
 end
-
-vim.api.nvim_create_autocmd("User", {
-	pattern = "LuasnipChoiceNodeEnter",
-	callback = function()
-		vim.schedule(function()
-			require("blink-cmp").show({
-				providers = { "choice" },
-			})
-		end)
-	end,
-})
 
 return source
